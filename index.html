@@ -6,6 +6,7 @@
 <title>Torre Mestre</title>
 <style>
   :root {
+    color-scheme: dark;
     --bg: #0f1226;
     --panel: #1b2044ee;
     --text: #f3f4ff;
@@ -21,7 +22,7 @@
   canvas { display: block; position: fixed; inset: 0; }
   .hidden { display: none !important; }
 
-  #topbar { position: fixed; top: 0; left: 0; right: 0; height: 44px; display: flex; align-items: center;
+  #topbar { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; height: 44px; display: flex; align-items: center;
     justify-content: space-between; padding: 0 12px; background: #0008; z-index: 2; font-weight: 700; }
   #topbar button { background: var(--btn); color: var(--text); border: 0; border-radius: 8px; padding: 6px 12px;
     font-weight: 700; cursor: pointer; }
@@ -660,7 +661,13 @@
   document.getElementById('playBtn').addEventListener('click', startGame);
   document.getElementById('againBtn').addEventListener('click', startGame);
   document.getElementById('menuBtn').addEventListener('click', toMenu);
-  document.getElementById('quitBtn').addEventListener('click', () => { if (confirm('Sair da partida e voltar ao menu?')) toMenu(); });
+  const quitBtn = document.getElementById('quitBtn');
+  let quitArmed = null;
+  quitBtn.addEventListener('click', () => {
+    if (quitArmed) { clearTimeout(quitArmed); quitArmed = null; quitBtn.textContent = 'Menu'; toMenu(); return; }
+    quitBtn.textContent = 'Sair? Toque de novo';
+    quitArmed = setTimeout(() => { quitArmed = null; quitBtn.textContent = 'Menu'; }, 2500);
+  });
 
   // gancho para testes automatizados
   window.__torre = { get state() { return { players, round, turnIdx, phase }; } };
