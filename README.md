@@ -37,3 +37,16 @@ Jogo de tênis 2D contra a CPU. Abra o arquivo `tenis.html` no navegador (comput
 - Quanto mais perto do ponto ideal você estiver na hora da batida, mais forte e precisa sai a bola. Batendo correndo, ela fica menos precisa.
 - Pontuação oficial (0, 15, 30, 40, iguais, vantagem), games, sets e tie-break.
 - Comemorações com torcida, confete, fogos e balões de fala a cada ponto, game e set.
+
+---
+
+# Tênis Turbo 3D
+
+Versão 3D com cidade, dinheiro e evolução do jogador. Abra `tenis3d.html` no navegador (precisa de internet para carregar o Three.js).
+
+- **Cidade**: ande com `WASD`/setas ou joystick, `Shift`/CORRER para correr, `E`/ENTRAR nos lugares marcados com o anel amarelo.
+- **Estádio**: 4 torneios (Bairro, Copa da Cidade, Open Profissional, Grand Slam). Vencer dá o prêmio + bônus por aces e winners; perder dá R$ 25. Os torneios maiores liberam com vitórias.
+- **Loja de Tênis**: tênis mais rápidos e com mais fôlego.
+- **Loja de Raquetes**: raquetes com mais força e precisão.
+- **Academia**: Supino (força: bola mais forte) e Esteira (fôlego). Aperte rápido para encher a barra e subir de nível (até 10).
+- O progresso (dinheiro, itens, níveis) fica salvo no navegador.
