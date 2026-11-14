@@ -14,3 +14,26 @@ Jogo local de montar torres, em rodadas. Abra o arquivo `index.html` no navegado
 - Se o bloco cair fora da torre, você perde uma ❤ (cada um tem 3). Sem ❤, está eliminado.
 - O bloco fica mais rápido a cada rodada.
 - Depois de 10, 15 ou 20 rodadas, vence a torre mais alta. Em caso de empate, ganha quem fez mais perfeitos.
+
+---
+
+# Tênis Turbo
+
+Jogo de tênis 2D contra a CPU. Abra o arquivo `tenis.html` no navegador (computador ou celular).
+
+## Opções
+- **Adversário**: Fácil, Médio ou Difícil
+- **Velocidade do jogo**: Real, Rápido (1,3×) ou Turbo (1,65×) — mais rápido que o tênis de verdade
+- **Partida**: Rápida (1 set de 3 games), Normal (1 set de 6 games) ou Longa (melhor de 3 sets de 4 games), com tie-break
+
+## Controles
+- **Teclado + mouse**: `WASD`/setas movem · `Shift` corre (gasta fôlego) · o **mouse mira** onde a bola vai cair ·
+  `Clique`/`Espaço` bola chapada · `Z` ou botão direito topspin · `X` slice · `C` lob · segure `Q`/`E` para a bola fazer curva · `P` pausa
+- **Celular**: joystick para mover, toque na quadra do adversário para mirar, botões BATER / TOP / SLICE / LOB / CORRER / CURVA
+
+## Regras e efeitos
+- **Saque**: aperte para lançar a bola e aperte de novo quando ela estiver no alto. A área de saque certa pisca. Falta, dupla falta e let.
+- **Efeitos**: topspin cai rápido e pula alto; slice flutua e quica baixo; lob vai por cima; curva entorta a bola para o lado.
+- Quanto mais perto do ponto ideal você estiver na hora da batida, mais forte e precisa sai a bola. Batendo correndo, ela fica menos precisa.
+- Pontuação oficial (0, 15, 30, 40, iguais, vantagem), games, sets e tie-break.
+- Comemorações com torcida, confete, fogos e balões de fala a cada ponto, game e set.
