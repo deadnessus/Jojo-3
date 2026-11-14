@@ -127,11 +127,22 @@
   table.stats { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
   table.stats td, table.stats th { padding: 5px 4px; text-align: center; border-bottom: 1px solid #ffffff14; }
   table.stats td:first-child { text-align: left; color: var(--muted); }
+  #toast { position: fixed; left: 50%; top: calc(64px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 8;
+    background: #0d2a14ee; border: 2px solid #3a5; color: #fff; border-radius: 12px; padding: 8px 14px; font-weight: 800;
+    pointer-events: none; transition: opacity .3s; opacity: 0; max-width: calc(100% - 32px); text-align: center; }
+  #toast.show { opacity: 1; }
+  #toast.err { background: #3a1010ee; border-color: var(--bad); }
+  textarea.code { width: 100%; height: 64px; background: #0006; color: var(--text); border: 1px solid #fff3; border-radius: 10px;
+    padding: 8px; font-family: ui-monospace, monospace; font-size: 11px; resize: none; user-select: text; -webkit-user-select: text; }
+  .savebox { background: #0003; border-radius: 12px; padding: 12px; margin-top: 12px; }
+  .savebox .row { margin-top: 8px; }
+  .savebox button { background: var(--btn); color: var(--text); border: 0; border-radius: 10px; padding: 10px 6px; font-weight: 800; cursor: pointer; font-size: 14px; }
   #loading { position: fixed; inset: 0; z-index: 9; display: flex; align-items: center; justify-content: center; background: var(--bg);
     font-weight: 800; color: var(--muted); text-align: center; padding: 20px; }
 </style>
 </head>
 <body>
+<div id="toast"></div>
 <div id="loading">Carregando o 3D…</div>
 <canvas id="gl"></canvas>
 <canvas id="ov"></canvas>
@@ -199,7 +210,16 @@
   <div class="card">
     <h2>Menu</h2>
     <div class="help" id="cityStats"></div>
-    <button class="play" id="cmResume">CONTINUAR</button>
+    <button class="play" id="cmSave">💾 SALVAR JOGO</button>
+    <div class="savebox">
+      <div class="help" style="margin:0">O jogo salva sozinho neste aparelho. Para continuar em <b>outro celular ou computador</b>,
+        copie o código abaixo e cole lá em <b>Carregar código</b>.</div>
+      <textarea class="code" id="saveCode" readonly></textarea>
+      <div class="row"><button id="copyCode">📋 Copiar código</button></div>
+      <textarea class="code" id="loadCode" placeholder="Cole aqui um código de save"></textarea>
+      <div class="row"><button id="loadCodeBtn">📥 Carregar código</button></div>
+    </div>
+    <button class="play secondary" id="cmResume">Continuar jogando</button>
     <button class="play secondary" id="cmTitle">Tela inicial</button>
   </div>
 </div>
@@ -316,7 +336,36 @@
   }
   let save = defaultSave();
   try { const s = JSON.parse(localStorage.getItem('tenisTurbo3d') || 'null'); if (s && typeof s.money === 'number') save = Object.assign(defaultSave(), s); } catch (e) {}
-  function persist() { try { localStorage.setItem('tenisTurbo3d', JSON.stringify(save)); } catch (e) {} }
+  let canStore = true;
+  function persist() { try { localStorage.setItem('tenisTurbo3d', JSON.stringify(save)); canStore = true; return true; } catch (e) { canStore = false; return false; } }
+  let toastT = 0;
+  function toast(msg, bad) {
+    const t = document.getElementById('toast'); t.textContent = msg; t.classList.toggle('err', !!bad); t.classList.add('show');
+    clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+  function saveNow(silentOk) {
+    const ok = persist();
+    if (!ok) toast('⚠️ Este navegador não deixa salvar. Use o código de save no menu ☰.', true);
+    else if (!silentOk) toast('💾 Jogo salvo!');
+    return ok;
+  }
+  const encodeSave = () => btoa(unescape(encodeURIComponent(JSON.stringify(save))));
+  function decodeSave(code) {
+    try {
+      const o = JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
+      if (!o || typeof o.money !== 'number' || !Array.isArray(o.ownShoes) || !Array.isArray(o.ownRackets)) return null;
+      const d = defaultSave(), r = Object.assign(d, o);
+      r.money = Math.max(0, Math.min(1e7, Math.round(+r.money) || 0));
+      r.str = clamp(r.str | 0, 0, 10); r.endu = clamp(r.endu | 0, 0, 10);
+      r.ownShoes = r.ownShoes.filter(k => SHOES[k]); r.ownRackets = r.ownRackets.filter(k => RACKETS[k]);
+      if (!r.ownShoes.includes('basico')) r.ownShoes.unshift('basico');
+      if (!r.ownRackets.includes('basico')) r.ownRackets.unshift('basico');
+      if (!r.ownShoes.includes(r.shoes)) r.shoes = 'basico';
+      if (!r.ownRackets.includes(r.racket)) r.racket = 'basico';
+      r.started = true;
+      return r;
+    } catch (e) { return null; }
+  }
 
   const gear = () => ({ shoe: SHOES[save.shoes], rk: RACKETS[save.racket] });
   const powMul = () => gear().rk.pow * (1 + 0.03 * save.str);
@@ -821,12 +870,25 @@
   }
   function openCityMenu() {
     mode = 'cityMenu'; setHud();
+    $('saveCode').value = encodeSave();
     $('cityStats').innerHTML = `Dinheiro: <b>${fmt(save.money)}</b><br>Vitórias: <b>${save.wins}</b> · Derrotas: <b>${save.losses}</b><br>` +
       `Títulos: <b>${Object.keys(save.titles).map(k => TOURN.find(t => t.id === k).name + ' ×' + save.titles[k]).join(', ') || 'nenhum ainda'}</b>`;
     showScreen('cityMenu');
   }
   $('cityMenuBtn').addEventListener('click', openCityMenu);
   $('cmResume').addEventListener('click', () => goCity());
+  $('cmSave').addEventListener('click', () => { saveNow(); $('saveCode').value = encodeSave(); });
+  $('copyCode').addEventListener('click', () => {
+    const ta = $('saveCode'); ta.value = encodeSave();
+    const fallback = () => { ta.focus(); ta.select(); toast('Código selecionado: copie com Ctrl+C ou segurando o dedo.'); };
+    try { navigator.clipboard.writeText(ta.value).then(() => toast('📋 Código copiado!'), fallback); } catch (e) { fallback(); }
+  });
+  $('loadCodeBtn').addEventListener('click', () => {
+    const r = decodeSave($('loadCode').value);
+    if (!r) { toast('Código inválido. Confira se copiou ele inteiro.', true); return; }
+    save = r; applyGearVisual(); saveNow(true); updateCityHud(); $('loadCode').value = '';
+    toast('📥 Jogo carregado! ' + fmt(save.money)); openCityMenu();
+  });
   $('cmTitle').addEventListener('click', () => { persist(); openTitle(); });
   const muteToggle = () => { muted = !muted; $('muteBtn').textContent = $('cityMuteBtn').textContent = muted ? '🔇' : '🔊'; };
   $('muteBtn').addEventListener('click', muteToggle); $('cityMuteBtn').addEventListener('click', muteToggle);
@@ -868,7 +930,7 @@
       if (save.money < it.price) return;
       save.money -= it.price; own.push(id);
       if (isShoes) save.shoes = id; else save.racket = id;
-      sfx.coin(); applyGearVisual(); persist(); renderShop(); updateCityHud();
+      sfx.coin(); applyGearVisual(); saveNow(); renderShop(); updateCityHud();
     }));
     $('shopItems').querySelectorAll('[data-eq]').forEach(b => b.addEventListener('click', () => {
       if (isShoes) save.shoes = b.dataset.eq; else save.racket = b.dataset.eq;
@@ -923,7 +985,7 @@
     gymRun.done = true; $('gymPress').disabled = true;
     if (ok) { save[gymRun.g.stat] = Math.min(MAX_LV, save[gymRun.g.stat] + 1); sfx.win(); $('gymInstr').textContent = `💪 Subiu para o nível ${save[gymRun.g.stat]}!`; }
     else { $('gymInstr').textContent = '😮‍💨 Quase! Tente de novo.'; sfx.fault(); }
-    persist(); updateCityHud();
+    saveNow(!ok); updateCityHud();
     setTimeout(() => { gymRun = null; renderGym(); }, 1500);
   }
   $('gymExit').addEventListener('click', () => goCity('gym'));
@@ -1338,7 +1400,7 @@
     const bonus = stats[0].aces * 5 + stats[0].winners * 3;
     if (won) { earned = t.prize + bonus; save.wins++; save.titles[t.id] = (save.titles[t.id] || 0) + 1; }
     else if (!gaveUp) { earned = 25 + bonus; save.losses++; }
-    save.money += earned; persist();
+    save.money += earned; saveNow();
     mode = 'result'; setHud();
     $('resultTitle').innerHTML = won ? '🏆 Você venceu!' : gaveUp ? '🏳️ Você desistiu' : `😤 ${A.name} venceu`;
     $('resultScore').textContent = gaveUp ? '' : score.history.map(s => `${s[0]}-${s[1]}`).join('  ');
@@ -1649,6 +1711,8 @@
     requestAnimationFrame(frame);
   }
 
+  addEventListener('pagehide', persist);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) persist(); });
   resize();
   applyGearVisual();
   $('loading').classList.add('hidden');

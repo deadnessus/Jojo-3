@@ -49,4 +49,4 @@ Versão 3D com cidade, dinheiro e evolução do jogador. Abra `tenis3d.html` no 
 - **Loja de Tênis**: tênis mais rápidos e com mais fôlego.
 - **Loja de Raquetes**: raquetes com mais força e precisão.
 - **Academia**: Supino (força: bola mais forte) e Esteira (fôlego). Aperte rápido para encher a barra e subir de nível (até 10).
-- O progresso (dinheiro, itens, níveis) fica salvo no navegador.
+- **Salvar**: o jogo salva sozinho (depois de cada partida, compra e treino). No menu ☰ da cidade tem o botão **Salvar jogo** e um **código de save** para copiar e carregar em outro celular ou computador.
